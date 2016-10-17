@@ -7,7 +7,7 @@ state_game = 2
 state_gameover = 3
 state_winner = 4
 state_congrats = 5
-state = state_instructions
+state = state_intro
 
 sys = {
  width = 1,
@@ -15,11 +15,14 @@ sys = {
 }
 -- intro state object
 intro = {
+ selection = 1,
  offset = 1
 }
 
 -- instructions state object
-instructions = {}
+instructions = {
+ warmed_up=false
+}
 
 -- game state object
 game = {
@@ -65,6 +68,9 @@ function _draw()
 end 
 
 
+
+
+
 -- intro ----
 intro.start = function()
  state = state_intro
@@ -73,8 +79,13 @@ intro.start = function()
 end
 
 intro.update = function()
- --
- --
+ if btnp(2) then intro.selection = 1 end
+ if btnp(3) then intro.selection = 2 end
+
+ if btnp(4) or btnp(5) then 
+  if intro.selection == 1 then game.start() end
+  if intro.selection == 2 then instructions.start() end
+ end
 end
 
 intro.draw = function()
@@ -86,6 +97,8 @@ intro.draw = function()
  print("a game by jason mcleod",20,100,8)
  print("for '1 day jam' 2016",24,110,9)
  print("@jasonmcleod / jasonmcleod.me",5,120,10)
+ if intro.selection == 1 then print("†", 32, 50) end
+ if intro.selection == 2 then print("†", 32, 60) end
 end
 
 intro.effects = function()
@@ -102,15 +115,21 @@ intro.effects = function()
 end
 
 
+
+
+
 -- instructions ----
 instructions.start = function()
  state = state_instructions
+ instructions.warmed_up = false
  --
 end
 
 instructions.update = function()
- if btn(0) or btn(1) or btn(2) or btn(3) or btn(4) or btn(5) then
-  intro.start()
+ if instructions.warmed_up then
+  if btnp(0) or btnp(1) or btnp(2) or btnp(3) or btnp(4) or btnp(5) then
+   intro.start()
+  end
  end
 end
 
@@ -138,7 +157,11 @@ instructions.draw = function()
  print("primary 2", 10, offset + 10 * gap + 8, 7)
 
  print("clear blocks to advance!", 0, offset + 13 * gap, 3)
+ instructions.warmed_up = true
 end
+
+
+
 
 
 -- game ----
@@ -326,6 +349,10 @@ game.draw_header = function()
 end
 
 
+
+
+
+
 -- gameover ----
 gameover.start = function()
  state = state_gameover
@@ -343,6 +370,10 @@ gameover.draw = function()
  print("gameover draw placeholder")
  --
 end
+
+
+
+
 
 
 -- congrats ----
