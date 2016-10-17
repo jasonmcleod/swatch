@@ -7,7 +7,7 @@ state_game = 2
 state_gameover = 3
 state_winner = 4
 state_congrats = 5
-state = state_intro
+state = state_instructions
 
 sys = {
  width = 1,
@@ -80,7 +80,6 @@ end
 intro.draw = function()
  cls()
  intro.effects()
- sspr(0, 32, 128, 38,0,1)
 
  print("play swatch",40,50,7)
  print("instructions", 40,60,7)
@@ -99,24 +98,46 @@ intro.effects = function()
  end
  intro.offset += 1
  if intro.offset > 23 then intro.offset = 0 end
+ sspr(0, 32, 128, 38,0,1)
 end
 
 
 -- instructions ----
 instructions.start = function()
  state = state_instructions
- print("instructions start placeholder")
  --
 end
 
 instructions.update = function()
- print("instructions update placeholder")
- --
+ if btn(0) or btn(1) or btn(2) or btn(3) or btn(4) or btn(5) then
+  intro.start()
+ end
 end
 
 instructions.draw = function()
  cls();
- print("instructions draw2 placeholder" .. state)
+ local offset = 42
+ local gap = 6
+ intro.effects()
+ print("swatch is a game about colors", 0, offset, 9)
+ print("two rows of primary colors will", 0, offset + 2 * gap, 9)
+ print("slide across the bottom and", 0, offset + 3 * gap, 9)
+ print("produce a secondary color.", 0, offset + 4 * gap, 9)
+ print("wait until the color matches the", 0, offset + 5 * gap, 9)
+ -- highlight wait
+ print("wait", 0, offset + 5 * gap, 8)
+
+ print("column, press up to lock it in!", 0, offset + 6 * gap, 9)
+ spr(5, 0, 84)
+ print("green = blue + yellow!", 10, offset + 7 * gap + 2, 7)
+ spr(21, 0, 92)
+ print("indicator", 10, offset + 8 * gap + 4, 7)
+ spr(1, 0, 100)
+ print("primary 1", 10, offset + 9 * gap + 6, 7)
+ spr(2, 0, 108)
+ print("primary 2", 10, offset + 10 * gap + 8, 7)
+
+ print("clear blocks to advance!", 0, offset + 13 * gap, 3)
 end
 
 
