@@ -5,15 +5,17 @@ state_intro = 0
 state_instructions = 1
 state_game = 2
 state_gameover = 3
-state = state_game
+state_winner = 4
+state_congrats = 5
+state = state_intro
 
 sys = {
-	width = 15,
-	height = 15
+ width = 1,
+ height = 15
 }
 -- intro state object
 intro = {
-	offset = 1
+ offset = 1
 }
 
 -- instructions state object
@@ -21,58 +23,65 @@ instructions = {}
 
 -- game state object
 game = {
-	grid = {},
-	slide = 0,
-	x = 0,
-	score = 0,
-	streak = 0,
-	level = 1,
-	blank = 13,
-	max_height = 10
+ grid = {},
+ slide = 0,
+ x = 0,
+ score = 0,
+ streak = 0,
+ level = 1,
+ blank = 13,
+ max_height = 10
 }
 
 -- gameover state object
 gameover = {}
 
+-- winner state object
+winner = {}
+
+-- congrats state object
+congrats = {}
+
 -- pico functions
 function _init()
-	if state == state_intro then intro.start() end
-	if state == state_instructions then instructions.start() end
-	if state == state_game then game.start() end
-	if state == state_gameover then gameover.start() end
+ if state == state_intro then intro.start() end
+ if state == state_instructions then instructions.start() end
+ if state == state_game then game.start() end
+ if state == state_gameover then gameover.start() end
 end
 
 function _update()
  if state == state_intro then intro.update() end
  if state == state_instructions then instructions.update() end
  if state == state_game then game.update() end
-	if state == state_gameover then gameover.update() end
+ if state == state_gameover then gameover.update() end
 end
 
 function _draw()
-	if state == state_intro then intro.draw() end
-	if state == state_instructions then instructions.draw() end
-	if state == state_game then game.draw() end
-	if state == state_gameover then gameover.draw() end	
+ if state == state_intro then intro.draw() end
+ if state == state_instructions then instructions.draw() end
+ if state == state_game then game.draw() end
+ if state == state_gameover then gameover.draw() end 
 end 
 
 
 -- intro ----
 intro.start = function()
+ state = state_intro
  sfx(5)
  --
 end
 
 intro.update = function()
-	--
-	--
+ --
+ --
 end
 
 intro.draw = function()
  cls()
  intro.effects()
  sspr(0, 32, 128, 38,0,1)
- 
+
  print("play swatch",40,50,7)
  print("instructions", 40,60,7)
  print("a game by jason mcleod",20,100,8)
@@ -81,8 +90,8 @@ intro.draw = function()
 end
 
 intro.effects = function()
-	local x
-	local y
+ local x
+ local y
  for y = 0, 4 do
   for x = -4, 26 do
    spr(48,x*8+intro.offset-1,y*8)
@@ -95,23 +104,25 @@ end
 
 -- instructions ----
 instructions.start = function()
-	print("instructions start placeholder")
-	--
+ state = state_instructions
+ print("instructions start placeholder")
+ --
 end
 
 instructions.update = function()
-	print("instructions update placeholder")
-	--
+ print("instructions update placeholder")
+ --
 end
 
 instructions.draw = function()
-	cls();
-	print("instructions draw2 placeholder" .. state)
+ cls();
+ print("instructions draw2 placeholder" .. state)
 end
 
 
 -- game ----
 game.start = function() 
+ state = state_game
  sfx(6)
  game.grid = game.build_level()
  game.band1 = game.build_band()
@@ -119,28 +130,28 @@ game.start = function()
 end
 
 game.build_band = function()
-	local band = {}
-	local c
-	for c = 0, 15 do
-		band[c] = flr(rnd(3))
-	end
-	return band
+ local band = {}
+ local c
+ for c = 0, 15 do
+  band[c] = flr(rnd(3))
+ end
+ return band
 end
 
 game.build_level = function()
-	local temp = {}
-	local x
-	local y
-	local u
+ local temp = {}
+ local x
+ local y
+ local u
  for y = 0, sys.height do
-	 temp[y] = {}
-	 for x = 0, sys.width do
-	  u = flr(rnd(3)+3)
- 	 if y >= game.level then u = game.blank end
-	  temp[y][x] = u
-	 end
-	end
-	return temp
+  temp[y] = {}
+  for x = 0, sys.width do
+   u = flr(rnd(3)+3)
+   if y >= game.level then u = game.blank end
+   temp[y][x] = u
+  end
+ end
+ return temp
 end
 
 game.update = function()
@@ -152,59 +163,59 @@ game.update = function()
 end
 
 game.draw = function()
-	cls()
+ cls()
  local p = game.get_color()
 
-	game.slide += .25
- 	 
-	if game.slide == 8 then
-		game.band1 = game.nudge_left(game.band1)
-		game.band2 = game.nudge_right(game.band2)
-		game.slide = 0
-	end
- 	
+ game.slide += .25
+
+ if game.slide == 8 then
+  game.band1 = game.nudge_left(game.band1)
+  game.band2 = game.nudge_right(game.band2)
+  game.slide = 0
+ end
+
  -- draw player
  spr(p + 6, game.x, 15*8)
-   
+
  -- draw game.level
  for y = 0, sys.height do
   for x = 0, sys.width do
    local col = game.grid[y][x]
-    spr(col, x*8, y*8+16)
+   spr(col, x*8, y*8+16)
   end
-	end
- 	
-	--draw bands
- for x = 0, 17 do
-	 spr(game.band1[x], x*8-game.slide-8, 13*8)
-	 spr(game.band2[x], x*8+game.slide-8, 14*8)
  end
-  
-	-- draw line from top to bottom
- for y = game.getheight(game.x/8), 10 do
-  spr(p+16, game.x, y*8+16)
-	end
- 	
-	line(game.x-1, 8, game.x-1, 16*8-2,0)	
-	line(game.x+7, 8, game.x+8, 16*8-2,0)	
-  	
- game.draw_header()	
+
+ --draw bands
+ for x = 0, 17 do
+  spr(game.band1[x], x*8-game.slide-8, 13*8)
+  spr(game.band2[x], x*8+game.slide-8, 14*8)
+ end
+
+ -- draw checkers from top to bottom
+ for y = game.get_height(game.x/8)+2, 12 do
+  spr(p+16, game.x, y * 8)
+ end
+
+ line(game.x-1, 8, game.x-1, 16*8-2,0) 
+ line(game.x+7, 8, game.x+8, 16*8-2,0) 
+
+ game.draw_header() 
 end
 
 game.get_color = function() 
  local z = flr(game.x/8)+1
 
  if game.band1[z] == 0 and game.band2[z] == 0 then return 0 end -- red + red = red
-	if game.band1[z] == 0 and game.band2[z] == 1 then return 3 end -- red + blue  = purple
-	if game.band1[z] == 0 and game.band2[z] == 2 then return 4 end -- red + yellow = orange
+ if game.band1[z] == 0 and game.band2[z] == 1 then return 3 end -- red + blue  = purple
+ if game.band1[z] == 0 and game.band2[z] == 2 then return 4 end -- red + yellow = orange
 
-	if game.band1[z] == 1 and game.band2[z] == 0 then return 3 end -- blue + blue = blue
-	if game.band1[z] == 1 and game.band2[z] == 1 then return 1 end -- blue + red = purple
-	if game.band1[z] == 1 and game.band2[z] == 2 then return 5 end -- blue + yellow = green
+ if game.band1[z] == 1 and game.band2[z] == 0 then return 3 end -- blue + blue = blue
+ if game.band1[z] == 1 and game.band2[z] == 1 then return 1 end -- blue + red = purple
+ if game.band1[z] == 1 and game.band2[z] == 2 then return 5 end -- blue + yellow = green
 
-	if game.band1[z] == 2 and game.band2[z] == 0 then return 4 end -- yellow + red = orange
-	if game.band1[z] == 2 and game.band2[z] == 1 then return 5 end -- yellow + blue = green
-	if game.band1[z] == 2 and game.band2[z] == 2 then return 2 end -- yellow + yellow = yellow
+ if game.band1[z] == 2 and game.band2[z] == 0 then return 4 end -- yellow + red = orange
+ if game.band1[z] == 2 and game.band2[z] == 1 then return 5 end -- yellow + blue = green
+ if game.band1[z] == 2 and game.band2[z] == 2 then return 2 end -- yellow + yellow = yellow
  return 1
 end
 
@@ -220,7 +231,7 @@ game.nudge_right = function(tab)
 end
 
 game.nudge_left = function(tab)
-	local x, v, temp
+ local x, v, temp
  temp = {}
  for x,v in pairs(tab) do
   local c = x-1
@@ -231,67 +242,130 @@ game.nudge_left = function(tab)
  return temp
 end
 
-game.check = function(height)
-  local x_tile = flr(game.x/8)
+game.check_and_set = function(height)
+ local x_tile = flr(game.x/8)
+ if height == 0 then
+   game.grid[height][x_tile] = game.get_color()
+   sfx(8)
+ else 
   if game.grid[height-1][x_tile] == game.grid[height][x_tile] then
-   game.grid[height-1][x_tile] = game.blank
+   game.grid[height-1][x_tile] = game.blank 
    game.grid[height][x_tile] = game.blank
    return true
   else
    return false
-  end	
+  end 
+ end
 end
 
-game.getheight = function(x)
-	local y
- for y = 1, sys.height do
+game.get_height = function(x)
+ local y
+ for y = 0, sys.height do
   if game.grid[y][x] == game.blank then return y end
-	end
-	return game.level
+ end
+ return game.level
 end
 
 game.place = function()
- -- game.check if we are topped out
+ -- check if we are topped out
  for a = 1, sys.width do
-  if game.getheight(a) >= game.max_height then
+  if game.get_height(a) >= game.max_height then
    gameover.start()
   end
-	end
-	
- local height = game.getheight(game.x/8)
+ end
+
+ -- attempt to set tile
+ local height = game.get_height(game.x/8)
  game.grid[height][game.x/8] = game.get_color()
- if game.check(height) then
-	 game.streak+=1
-	 game.score+=10 * game.streak
+ if game.check_and_set(height) then
+  game.streak+=1
+  game.score+=10 * game.streak
   sfx(2)
  else
- 	game.streak=0
- 	sfx(4)
+  game.streak=0
+  sfx(4)
+ end
+
+ -- see if the level is complete
+ local win = true
+ for a = 0, sys.width do
+  if game.get_height(a) > 0 then win = false end
+ end
+ -- die()
+
+ if win then 
+  winner.start()
  end
 end
 
 game.draw_header = function()
-	sspr(0,85,64,16,2,2) 
-	print("score: " .. game.score, 86,2,7)
-	print("streak: " .. game.streak, 86,10,7)
+ sspr(0,85,64,16,2,2) 
+ print("score: " .. game.score, 86,2,7)
+ print("streak: " .. game.streak, 86,10,7)
 end
 
 
 -- gameover ----
 gameover.start = function()
-	print("gameover start placeholder")
-	--
+ state = state_gameover
+ print("gameover start placeholder")
+ --
 end
 
 gameover.update = function()
-	print("gameover update placeholder")
-	--
+ print("gameover update placeholder")
+ --
 end
 
 gameover.draw = function()
-	cls();
-	print("gameover draw placeholder")
-	--
+ cls();
+ print("gameover draw placeholder")
+ --
+end
+
+
+-- congrats ----
+congrats.start = function()
+ state = state_congrats
+ print("congrats start placeholder")
+ --
+end
+
+congrats.update = function()
+ print("congrats update placeholder")
+ --
+end
+
+congrats.draw = function()
+ cls();
+ print("congrats draw placeholder")
+ --
+end
+
+
+-- winner ----
+winner.start = function()
+ state = state_winner
+ cls()
+ game.level+=1
+ sfx(1)
+ if game.level == game.max_level then
+  congrats.start()
+ else 
+  game.start()
+ end
+ --
+end
+
+winner.update = function()
+ print("winner update placeholder")
+ --
+end
+
+winner.draw = function()
+ cls();
+ print("winner draw placeholder")
+ --
 end
 
 
@@ -469,7 +543,7 @@ __sfx__
 00010000000000d05011050170501b05020050250502a0502d050340503a0503e0500000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000100000105002050030500405004050060500705008050090500a0500d0500e0500f050120501405015050190501b0501e050200502305026050280502b0502e050310503305036050380503b0503e0503f050
 00010000000000c05012050160501a05022050260502d05031050310502b05024050210501a0501505014050170501e050230502705030050370503a0503c05039050330502f0502b05025050200501b05016050
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0001000000000271502a1502e150341503615035150321502d150281501f1501c1501e150211502415026150271501c150191501915018150151501315012150121500f1500b1500a15008150000000000000000
 001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0001000008350073500735007350073500a3500535002350013500135003340013400134002340013000130001300013000130001300000000000000000000000000000000000000000000000000000000000000
 00020000036500365003650066500f620036100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
