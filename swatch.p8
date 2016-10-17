@@ -10,7 +10,7 @@ state_congrats = 5
 state = state_intro
 
 sys = {
- width = 1,
+ width = 15,
  height = 15
 }
 -- intro state object
@@ -37,7 +37,9 @@ game = {
 }
 
 -- gameover state object
-gameover = {}
+gameover = {
+ warmed_up = false
+}
 
 -- winner state object
 winner = {}
@@ -74,6 +76,8 @@ end
 -- intro ----
 intro.start = function()
  state = state_intro
+ game.streak = 0
+ game.level = 1
  sfx(5)
  --
 end
@@ -199,9 +203,15 @@ game.build_level = function()
 end
 
 game.update = function()
- if btnp(0) then game.x-=8 end
+ if btnp(0) then 
+  game.x-=8 
+  sfx(9)
+ end
  if game.x < 0 then game.x = 15*8 end
- if btnp(1) then game.x += 8 end
+ if btnp(1) then 
+  game.x += 8 
+  sfx(9)
+ end
  if game.x > 15*8 then game.x = 0 end
  if btnp(2) then game.place() end
 end
@@ -312,7 +322,7 @@ end
 
 game.place = function()
  -- check if we are topped out
- for a = 1, sys.width do
+ for a = 0, sys.width do
   if game.get_height(a) >= game.max_height then
    gameover.start()
   end
@@ -326,6 +336,7 @@ game.place = function()
   game.score+=10 * game.streak
   sfx(2)
  else
+  game.score-=10 * game.streak
   game.streak=0
   sfx(4)
  end
@@ -343,9 +354,12 @@ game.place = function()
 end
 
 game.draw_header = function()
- sspr(0,85,64,16,2,2) 
- print("score: " .. game.score, 86,2,7)
- print("streak: " .. game.streak, 86,10,7)
+ sspr(0,85,64,16,0,0) 
+ line(0, 14, 140,14,5)
+ print("lvl score streak", 65 ,0,7)
+ print(game.level, 64 + 5, 6)
+ print(game.score, 64 + 23, 6)
+ print(game.streak, 64 + 52, 6)
 end
 
 
@@ -356,19 +370,23 @@ end
 -- gameover ----
 gameover.start = function()
  state = state_gameover
- print("gameover start placeholder")
- --
+ gameover.warmed_up = false
 end
 
 gameover.update = function()
- print("gameover update placeholder")
- --
+ if gameover.warmed_up then
+  if btnp(0) or btnp(1) or btnp(2) or btnp(3) or btnp(4) or btnp(5) then
+    intro.start()
+   end
+ end
 end
 
 gameover.draw = function()
  cls();
- print("gameover draw placeholder")
- --
+ gameover.warmed_up = false
+ intro.effects()
+ print("game over", 46, 80, 7)
+ gameover.warmed_up = true
 end
 
 
@@ -596,7 +614,7 @@ __sfx__
 000100000105002050030500405004050060500705008050090500a0500d0500e0500f050120501405015050190501b0501e050200502305026050280502b0502e050310503305036050380503b0503e0503f050
 00010000000000c05012050160501a05022050260502d05031050310502b05024050210501a0501505014050170501e050230502705030050370503a0503c05039050330502f0502b05025050200501b05016050
 0001000000000271502a1502e150341503615035150321502d150281501f1501c1501e150211502415026150271501c150191501915018150151501315012150121500f1500b1500a15008150000000000000000
-001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000100000000001050040500b15002020041200111000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0001000008350073500735007350073500a3500535002350013500135003340013400134002340013000130001300013000130001300000000000000000000000000000000000000000000000000000000000000
 00020000036500365003650066500f620036100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00130008046500c6200c6300c6200c6200c61001630016500e3500e7500a3500e7500f2501225015250182501b2501e2501e2501b250172501425011250102500f2500f250000000000000000000000000000000
